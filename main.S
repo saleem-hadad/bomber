@@ -13,8 +13,6 @@ loop:
     RJMP loop
 
 setupPins:
-    ; set ddrb pin 4 output
-    SBI 0x23 - 0x20, 4
     RET
 
 setupUSART:
@@ -25,12 +23,12 @@ setupUSART:
     STS UBRR0H, r17
 
     ; set frame, 8 bits, 2 stop bit
-    LDI	r16, 0b00001110
-	STS	UCSR0C, r16
+    LDI r16, 0b00001110
+    STS UCSR0C, r16
 
     ; enable the rec. of the serial
-    LDI	r16, (1 << RXEN0) | (1 << TXEN0)
-	STS	UCSR0B, r16
+    LDI r16, (1 << RXEN0) | (1 << TXEN0)
+    STS UCSR0B, r16
     RET
 
 serialReceive:
@@ -40,26 +38,51 @@ serialReceive:
     ; Get and return received data from buffer
     LDS r16, UDR0
 
+    ; check if the action is left
+    LDI r17, 75
+    CP r16, r17
+    BREQ moveLeft
+
     ; check if the action is right
     LDI r17, 80
     CP r16, r17
-    BREQ ledOn
-    ; check if the action is left
+    BREQ moveRight
+
     ; check if the action is forward
+    LDI r17, 85
+    CP r16, r17
+    BREQ moveForward
+
     ; check if the action is backward
-    
+    LDI r17, 90
+    CP r16, r17
+    BREQ moveBackward
+
+    ; check if the action is shoot
+    LDI r17, 95
+    CP r16, r17
+    BREQ shoot
+
+    ; check if the action is stop
     LDI r17, 100
     CP r16, r17
-    BREQ ledOff
-        
+    BREQ stop
     RET
 
-ledOn:
-    ; turn on the led
-    SBI 0x24 - 0x20, 4
+moveLeft:
     RET
 
-ledOff:
-    ; turn off the led
-    CBI 0x24 - 0x20, 4
+moveRight:
+    RET
+
+moveForward:
+    RET
+
+moveBackward:
+    RET
+
+shoot:
+    RET
+
+stop:
     RET
