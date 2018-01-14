@@ -39,7 +39,15 @@ setupUSART:
     RET
 
 setupPWM:
-    ; Timer 1 (pins 9, 10) [right motor]
+    ; Timer 1 (right motor):
+    ; pin 9     ->  OC1A
+    ; pin 10    ->  OC1B
+
+    ; Timer 2 (left motor)
+    ; pin 11    ->  OC2A
+    ; pin 3     ->  OC2B
+
+    ; Timer 1:
     ; set PWM mode to fast PWM with 8 bits
     LDI r16, (1 << COM1A1) | (1 << COM1B1) | (1 << WGM10)
     STS TCCR1A, r16
@@ -47,7 +55,7 @@ setupPWM:
     LDI r16, (1 << CS11) | (1 << CS10)
     STS TCCR1B, r16
 
-    ; Timer 2 (pins 3, 11) [left motor]
+    ; Timer 2:
     ; set PWM mode to fast PWM
     LDI r16, (1 << COM2A1) | (1 << COM2B1) | (1 << WGM20)
     STS TCCR2A, r16
@@ -95,15 +103,42 @@ serialReceive:
     RET
 
 moveLeft:
+    LDI r16, 0
+    LDI r17, 255
+    STS OCR1A, r17
+    STS OCR2A, r16
+    STS OCR1B, r16
+    STS OCR2B, r17
     RET
 
 moveRight:
+    LDI r16, 0
+    LDI r17, 255
+    STS OCR1A, r16
+    STS OCR2A, r17
+    STS OCR1B, r17
+    STS OCR2B, r16
     RET
 
+
 moveForward:
+    LDI r16, 255
+    LDI r17, 0
+    STS OCR1A, r16
+    STS OCR2A, r16
+
+    STS OCR1B, r17
+    STS OCR2B, r17
     RET
 
 moveBackward:
+    LDI r16, 0
+    LDI r17, 255
+    STS OCR1A, r16
+    STS OCR2A, r16
+
+    STS OCR1B, r17
+    STS OCR2B, r17
     RET
 
 shoot:
