@@ -1,9 +1,10 @@
 .file "main.S"
 #include <avr/io.h>
+
+gain: .BYTE, 1
 .text
 .global setup
 .global loop
-
 setup:
     RCALL setupPins
     RCALL setupUSART
@@ -63,6 +64,24 @@ setupPWM:
     LDI r16, (1 << CS22)
     STS TCCR2B, r16
     RET
+
+analogRead:
+    LDI r16, 0b01000000
+    STS ADMUX, r16
+
+    LDI r16, 0b11000111
+    STS ADCSRA, r16
+
+    LDI r16, (1 << 6)
+    STS ADCSRA, r16
+
+wait:
+    LDS r16, ADCSRA
+    SBRS r16, ADSC
+    RJMP wait
+    
+    LDS r16, ADCL
+    ; update the gain
 
 serialReceive:
     LDS r17, UCSR0A
