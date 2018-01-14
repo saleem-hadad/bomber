@@ -1,7 +1,8 @@
 .file "main.S"
 #include <avr/io.h>
 
-gain: .BYTE, 1
+.EQU speed, 100
+
 .text
 .global setup
 .global loop
@@ -9,6 +10,8 @@ setup:
     RCALL setupPins
     RCALL setupUSART
     RCALL setupPWM
+    RCALL setupADC
+    RET
 
 loop:
     RCALL serialReceive
@@ -18,8 +21,8 @@ setupPins:
     ; Set DP 3 as an Output
     LDI r16, 0b00001000
     STS DDRD, r16
-    ; Set DP 9, 10, 11 as Outputs
-    LDI r16, 0b00001110
+    ; Set DP 8, 9, 10, 11 as Outputs
+    LDI r16, 0b00001111
     STS DDRB, r16
     RET
 
@@ -65,23 +68,14 @@ setupPWM:
     STS TCCR2B, r16
     RET
 
-analogRead:
+setupADC:
+    ; set and start the ADC conversion on pin 0 port c
     LDI r16, 0b01000000
     STS ADMUX, r16
-
-    LDI r16, 0b11000111
+    ; set pre-scaler to 128 and mode to auto-triggering
+    LDI r16, 0b11100111
     STS ADCSRA, r16
-
-    LDI r16, (1 << 6)
-    STS ADCSRA, r16
-
-wait:
-    LDS r16, ADCSRA
-    SBRS r16, ADSC
-    RJMP wait
-    
-    LDS r16, ADCL
-    ; update the gain
+    RET
 
 serialReceive:
     LDS r17, UCSR0A
@@ -123,7 +117,9 @@ serialReceive:
 
 moveLeft:
     LDI r16, 0
-    LDI r17, 255
+    LDS r17, ADCL
+    LDS r18, ADCH
+
     STS OCR1A, r17
     STS OCR2A, r16
     STS OCR1B, r16
@@ -132,41 +128,65 @@ moveLeft:
 
 moveRight:
     LDI r16, 0
-    LDI r17, 255
+    LDS r17, ADCL
+    LDS r18, ADCH
+
     STS OCR1A, r16
     STS OCR2A, r17
     STS OCR1B, r17
     STS OCR2B, r16
     RET
 
-
 moveForward:
-    LDI r16, 255
+    LDS r16, ADCL
+    LDS r18, ADCH
     LDI r17, 0
+
     STS OCR1A, r16
     STS OCR2A, r16
-
     STS OCR1B, r17
     STS OCR2B, r17
     RET
 
 moveBackward:
     LDI r16, 0
-    LDI r17, 255
+    LDS r17, ADCL
+    LDS r18, ADCH
+
     STS OCR1A, r16
     STS OCR2A, r16
-
     STS OCR1B, r17
     STS OCR2B, r17
     RET
 
 shoot:
+    ; fire the bomb :p
+    SBI PORTB - 0x20, 0
+    RCALL delay
+    CBI PORTB - 0x20, 0
     RET
 
 stop:
+    ; stop the robot movement
     LDI r16, 0
+
     STS OCR1A, r16
     STS OCR1B, r16
     STS OCR2A, r16
     STS OCR2B, r16
+    RET
+
+delay:
+    ; custom delay for 1 second
+    ldi  r18, 82
+    ldi  r19, 43
+    ldi  r20, 100
+temp:
+    dec  r20
+    brne temp
+    dec  r19
+    brne temp
+    dec  r18
+    brne temp
+    nop
     RET
