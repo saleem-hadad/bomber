@@ -7,12 +7,19 @@
 setup:
     RCALL setupPins
     RCALL setupUSART
+    RCALL setupPWM
 
 loop:
     RCALL serialReceive
     RJMP loop
 
 setupPins:
+    ; Set DP 3 as an Output
+    LDI r16, 0b00001000
+    STS DDRD, r16
+    ; Set DP 9, 10, 11 as Outputs
+    LDI r16, 0b00001110
+    STS DDRB, r16
     RET
 
 setupUSART:
@@ -29,6 +36,25 @@ setupUSART:
     ; enable the rec. of the serial
     LDI r16, (1 << RXEN0) | (1 << TXEN0)
     STS UCSR0B, r16
+    RET
+
+setupPWM:
+    ; First Counter For PIN 5,6
+    ; SET TO PWM MODE 1
+    LDI r16, (1 << COM0A1) | (1 << COM0B1) | (1 << WGM00) | (1 << WGM01)
+    STS TCCR1A, r16
+
+    ; SET PRESCALER/DIVIDER TO /1024
+    LDI r16, (5 << CS00)
+    STS TCCR1B, r16
+
+    ; Second Counter For PIN 11,3
+    LDI r16, (1 << COM2A1) | (1 << COM2B1) | (1 << WGM00) | (1 << WGM01)
+    STS TCCR2A, r16
+
+    ; SET PRESCALER/DIVIDER TO /1024
+    LDI r16, (5 << CS02)
+    STS TCCR2B, r16
     RET
 
 serialReceive:
@@ -70,19 +96,30 @@ serialReceive:
     RET
 
 moveLeft:
+    ; SBI PORTD - 0x20, 2
     RET
 
 moveRight:
+    ; SBI PORTD - 0x20, 4
     RET
 
 moveForward:
+    ; SBI PORTD - 0x20, 5
     RET
 
 moveBackward:
+    ; SBI PORTB - 0x20, 3
     RET
 
 shoot:
+    LDI r16, 0b00001110
+    STS PORTB, r16
+    LDI r16, 0b00001000
+    STS PORTD, r16
     RET
 
 stop:
+    LDI r16, 0b00000000
+    STS PORTB, r16
+    STS PORTD, r16
     RET
