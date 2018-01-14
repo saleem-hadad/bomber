@@ -1,8 +1,6 @@
 .file "main.S"
 #include <avr/io.h>
 
-.EQU speed, 100
-
 .text
 .global setup
 .global loop
