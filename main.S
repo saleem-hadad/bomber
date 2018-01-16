@@ -100,10 +100,21 @@ setupPWM:
     RET
 
 setupADC:
-    ; set and start the ADC conversion on pin 0 port c
+    ; set the ADC conversion on pin 0 port c, with AVCC ref.
+    +-------+-------+-------+-------+---+------+------+------+------+
+    | ADMUX | REFS1 | REFS0 | ADLAR | - | MUX3 | MUX2 | MUX1 | MUX0 |
+    +-------+-------+-------+-------+---+------+------+------+------+
+    | 0x7C  |     0 |     1 |     0 | 0 |    0 |    0 |    0 |    0 |
+    +-------+-------+-------+-------+---+------+------+------+------+
     LDI r16, 0b01000000
     STS ADMUX, r16
-    ; set pre-scaler to 128 and mode to auto-triggering
+
+    ; set pre-scaler to 128 and mode to auto-triggering, and start.
+    ;+--------+------+------+-------+------+------+-------+-------+-------+
+    ;| ADCSRA | ADEN | ADSC | ADATE | ADIF | ADIE | ADPS2 | ADPS1 | ADPS0 |
+    ;+--------+------+------+-------+------+------+-------+-------+-------+
+    ;| 0x7A   |    1 |    1 |     1 |    0 |    0 |     1 |     1 |     1 |
+    ;+--------+------+------+-------+------+------+-------+-------+-------+
     LDI r16, 0b11100111
     STS ADCSRA, r16
     RET
