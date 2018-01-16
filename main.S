@@ -141,9 +141,11 @@ setupADC:
     RET
 
 serialReceive:
+    ; check first if the data has been received.
     LDS r17, UCSR0A
     SBRS r17, RXC0
     RJMP serialReceive
+    
     ; get the ready data from buffer
     LDS r16, UDR0
 
