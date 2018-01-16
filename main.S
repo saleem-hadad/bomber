@@ -25,17 +25,39 @@ setupPins:
     RET
 
 setupUSART:
+    
     ; set the baud rate to 115200
+    ;+--------+---+---+---+---+---+---+---+---+
+    ;| UBRR0L | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+    ;+--------+---+---+---+---+---+---+---+---+
+    ;| 0xC4   | W | W | W | W | W | W | W | W |
+    ;+--------+---+---+---+---+---+---+---+---+
+
+    ;+--------+---+---+---+---+---+---+---+---+
+    ;| UBRR0H | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+    ;+--------+---+---+---+---+---+---+---+---+
+    ;| 0xC5   | W | W | W | W | W | W | W | W |
+    ;+--------+---+---+---+---+---+---+---+---+
     LDI r16, 0x08
     LDI r17, 0x00
     STS UBRR0L, r16
     STS UBRR0H, r17
 
     ; set frame, 8 bits, 2 stop bit
+    ;+--------+---------+---------+-------+-------+-------+--------+--------+--------+
+    ;| UCSR0C | UMSEL01 | UMSEL00 | UPM01 | UPM00 | USBS0 | UCSZ01 | UCSZ00 | UCPOL0 |
+    ;+--------+---------+---------+-------+-------+-------+--------+--------+--------+
+    ;| 0xC2   |       0 |       0 |     0 |     0 |     1 |      1 |      1 |      0 |
+    ;+--------+---------+---------+-------+-------+-------+--------+--------+--------+
     LDI r16, 0b00001110
     STS UCSR0C, r16
 
-    ; enable the rec. of the serial
+    ; enable the Tx and Rx of the serial
+    ;+--------+--------+--------+--------+-------+-------+--------+-------+-------+
+    ;| UCSR0B | RXCIE0 | TXCIE0 | UDRIE0 | RXEN0 | TXEN0 | UCSZ02 | RXB80 | TXB80 |
+    ;+--------+--------+--------+--------+-------+-------+--------+-------+-------+
+    ;| 0xC1   |      0 |      0 |      0 |     1 |     1 |      0 |     0 |     0 |
+    ;+--------+--------+--------+--------+-------+-------+--------+-------+-------+
     LDI r16, (1 << RXEN0) | (1 << TXEN0)
     STS UCSR0B, r16
     RET
@@ -50,7 +72,7 @@ setupPWM:
     ; pin 3     ->  OC2B
 
     ; Timer 1:
-    ; set PWM mode to fast PWM with 8 bits
+    ; set PWM mode to phase-correct PWM with 8 bits
     LDI r16, (1 << COM1A1) | (1 << COM1B1) | (1 << WGM10)
     STS TCCR1A, r16
     ; set pre-scaler to 64
@@ -58,7 +80,7 @@ setupPWM:
     STS TCCR1B, r16
 
     ; Timer 2:
-    ; set PWM mode to fast PWM
+    ; set PWM mode to phase-correct PWM
     LDI r16, (1 << COM2A1) | (1 << COM2B1) | (1 << WGM20)
     STS TCCR2A, r16
     ; set pre-scaler to 64
