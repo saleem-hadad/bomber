@@ -16,13 +16,13 @@ loop:
     RJMP loop
 
 setupPins:
-    ; Set DP 3 as an Output
+    ; Set DP 3, 4 and 5 as Outputs
     ; +------+-------+-------+-------+-------+-------+-------+-------+-------+
     ; | DDRD | DDRD7 | DDRD6 | DDRD5 | DDRD4 | DDRD3 | DDRD2 | DDRD1 | DDRD0 |
     ; +------+-------+-------+-------+-------+-------+-------+-------+-------+
-    ; | 0x2A |     0 |     0 |     0 |     0 |     1 |     0 |     0 |     0 |
+    ; | 0x2A |     0 |     0 |     1 |     1 |     1 |     0 |     0 |     0 |
     ; +------+-------+-------+-------+-------+-------+-------+-------+-------+
-    LDI r16, 0b00001000
+    LDI r16, 0b00111000
     STS DDRD, r16
 
     ; Set DP 8, 9, 10, 11 as Outputs
@@ -145,7 +145,7 @@ serialReceive:
     LDS r17, UCSR0A
     SBRS r17, RXC0
     RJMP serialReceive
-    
+
     ; get the ready data from buffer
     LDS r16, UDR0
 
@@ -225,7 +225,19 @@ moveBackward:
     RET
 
 shoot:
-    ; fire the bomb :p
+    ; 3
+    SBI PORTD - 0x20, 4
+    SBI PORTD - 0x20, 5
+    RCALL delay
+    ; 2
+    CBI PORTD - 0x20, 4
+    SBI PORTD - 0x20, 5
+    RCALL delay
+    ; 1
+    SBI PORTD - 0x20, 4
+    CBI PORTD - 0x20, 5
+    RCALL delay
+    ; fire the bomb
     SBI PORTB - 0x20, 0
     RCALL delay
     CBI PORTB - 0x20, 0
